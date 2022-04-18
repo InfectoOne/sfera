@@ -1,0 +1,18 @@
+{
+  "root": true,
+  "parser": "@typescript-eslint/parser",
+  "plugins": [
+    "@typescript-eslint"
+  ],
+  "extends": [
+    "eslint:recommended",
+    "plugin:@typescript-eslint/eslint-recommended",
+    "plugin:@typescript-eslint/recommended"
+  ],
+  "rules": { 
+    "semi": [2, "never"],
+    "indent": ["warn", "tab"],
+    "quotes": [2, "double", { "avoidEscape": true }],
+    "comma-spacing": [2, {"before": false, "after": true}]
+  }
+}
