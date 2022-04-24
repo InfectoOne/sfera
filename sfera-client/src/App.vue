@@ -15,14 +15,15 @@
   <div style="font-weight: bold; margin: 20px 0 10px 0">
     Received Messages:
   </div>
-  <div v-for="(recievedMsg, idx) in receivedMessages" :key="idx">
-    {{recievedMsg}}
+  <div v-for="(chatMsg, idx) in chatMessageList" :key="idx">
+    {{chatMsg}}
   </div>
 </template>
 
 <script setup lang="ts">
 import { Ref, ref } from "vue"
 import SferaPeer from "src/models/SferaPeer"
+import SferaMessage from "./models/SferaMessage"
 
 const isConnected = ref(false)
 const serverIp = "localhost"
@@ -36,11 +37,33 @@ wsConnection.onopen = () => {
 
 const message = ref("")
 const broadcastMessage = () => {
-  wsConnection.send(message.value)
+  const chatMsg: SferaMessage = {
+    type: "chat-message",
+    text: message.value
+  }
+  wsConnection.send(JSON.stringify(chatMsg))
   message.value = ""
 }
-const receivedMessages: Ref<string[]> = ref([])
+const chatMessageList: Ref<string[]> = ref([])
 wsConnection.onmessage = (ev: MessageEvent) => {
-  receivedMessages.value.push(String(ev.data))
+  console.log(ev.data)
+  const sferaMsg = JSON.parse(ev.data) as SferaMessage
+  switch (sferaMsg.type) {
+  case "chat-message":
+    if (sferaMsg.text) {
+      chatMessageList.value.push(sferaMsg.text)
+    }
+    break
+  case "peer-list":
+    if (sferaMsg.peerList) {
+      peersOnline.value = sferaMsg.peerList
+    }
+    break
+  case "peer-joined":
+    if (sferaMsg.peerList) {
+      peersOnline.value.push(...sferaMsg.peerList)
+    }
+    break
+  }
 }
 </script>
