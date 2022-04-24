@@ -13,6 +13,14 @@ const peerList: SferaPeer[] = []
 wsServer.on("connection", (conn: WebSocket) => {
 	const newPeer = new SferaPeer(conn)
 	peerList.push(newPeer)
+	newPeer.onMessage = (ev: MessageEvent) => {
+		const message = ev.data
+		for(const peer of peerList) {
+			if (peer.nickname != newPeer.nickname) {
+				peer.wsConn.send(message)
+			}
+		}
+	}
 })
 
 server.listen(port, () => {

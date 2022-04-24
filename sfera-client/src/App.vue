@@ -1,27 +1,46 @@
 <template>
-  <img alt="Vue logo" src="./assets/logo.png">
-  <HelloWorld msg="Welcome to Your Vue.js + TypeScript App"/>
+  <h2>Sfera</h2>
+  <div>
+  {{ isConnected ? 'Connected' : 'Not connected'}}
+  </div>
+  <div>
+  <h3>Peers online:</h3>
+  <div v-for="peer in peersOnline" :key="peer.nickname">
+    {{peer.nickname}}
+  </div>
+  </div>
+  Broadcast message:
+  <input v-model="message"/>
+  <button @click="broadcastMessage()">Send</button>
+  <div style="font-weight: bold; margin: 20px 0 10px 0">
+    Received Messages:
+  </div>
+  <div v-for="(recievedMsg, idx) in receivedMessages" :key="idx">
+    {{recievedMsg}}
+  </div>
 </template>
 
-<script lang="ts">
-import { defineComponent } from 'vue'
-import HelloWorld from './components/HelloWorld.vue'
+<script setup lang="ts">
+import { Ref, ref } from "vue"
+import SferaPeer from "src/models/SferaPeer"
 
-export default defineComponent({
-  name: 'App',
-  components: {
-    HelloWorld
-  }
-})
-</script>
+const isConnected = ref(false)
+const serverIp = "localhost"
+const serverPort = "4000"
+const peersOnline: Ref<SferaPeer[]> = ref([])
 
-<style>
-#app {
-  font-family: Avenir, Helvetica, Arial, sans-serif;
-  -webkit-font-smoothing: antialiased;
-  -moz-osx-font-smoothing: grayscale;
-  text-align: center;
-  color: #2c3e50;
-  margin-top: 60px;
+const wsConnection = new WebSocket(`ws://${serverIp}:${serverPort}`)
+wsConnection.onopen = () => {
+  isConnected.value = true
 }
-</style>
+
+const message = ref("")
+const broadcastMessage = () => {
+  wsConnection.send(message.value)
+  message.value = ""
+}
+const receivedMessages: Ref<string[]> = ref([])
+wsConnection.onmessage = (ev: MessageEvent) => {
+  receivedMessages.value.push(String(ev.data))
+}
+</script>
