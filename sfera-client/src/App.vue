@@ -7,6 +7,7 @@
   <h3>Peers online:</h3>
   <div v-for="peer in peersOnline" :key="peer.nickname">
     {{peer.nickname}}
+    <input type="file" @change="onFileinputEvent($event)"/>
   </div>
   </div>
   Broadcast message:
@@ -47,23 +48,37 @@ const broadcastMessage = () => {
 const chatMessageList: Ref<string[]> = ref([])
 wsConnection.onmessage = (ev: MessageEvent) => {
   console.log(ev.data)
-  const sferaMsg = JSON.parse(ev.data) as SferaMessage
-  switch (sferaMsg.type) {
-  case "chat-message":
-    if (sferaMsg.text) {
-      chatMessageList.value.push(sferaMsg.text)
+  if (ev.data instanceof Blob) {
+    const link = window.document.createElement("a")
+    link.href = window.URL.createObjectURL(ev.data as Blob)
+    link.download = link.href.split("/").pop() + "." + "jpg"
+    document.body.appendChild(link)
+    link.click()
+    document.body.removeChild(link)
+  } else {
+    const sferaMsg = JSON.parse(ev.data) as SferaMessage
+    switch (sferaMsg.type) {
+    case "chat-message":
+      if (sferaMsg.text) {
+        chatMessageList.value.push(sferaMsg.text)
+      }
+      break
+    case "peer-list":
+      if (sferaMsg.peerList) {
+        peersOnline.value = sferaMsg.peerList
+      }
+      break
+    case "peer-joined":
+      if (sferaMsg.peerList) {
+        peersOnline.value.push(...sferaMsg.peerList)
+      }
+      break
     }
-    break
-  case "peer-list":
-    if (sferaMsg.peerList) {
-      peersOnline.value = sferaMsg.peerList
-    }
-    break
-  case "peer-joined":
-    if (sferaMsg.peerList) {
-      peersOnline.value.push(...sferaMsg.peerList)
-    }
-    break
   }
+}
+
+const onFileinputEvent = (e: InputEvent) => {
+  const file = (e.target as HTMLInputElement).files?.[0] as Blob
+  wsConnection.send(file)
 }
 </script>
