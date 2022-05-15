@@ -1,4 +1,5 @@
 import SferaMessage from "./SferaMessage"
+import getRandomNickname from "./nicknameGenerator"
 import {Request} from 'express'
 export default class SferaPeer {
 	wsConn: WebSocket
@@ -8,11 +9,11 @@ export default class SferaPeer {
 
 	constructor(wsConn: WebSocket, request: Request) {
 		this.wsConn = wsConn
-		this.nickname = String(`SferaPeer_${Date.now()}`)
+		this.nickname = getRandomNickname()
 		this.ipAddress = SferaPeer.parseIpFromRequest(request)
 		console.log(`A new peer has joined! Nickname: ${this.nickname}`)
 		if(!this.ipAddress) {
-			console.error(`Failed to parse IP address of peer: ${this.nickname}. This peer won't be able to send or receive files.`)
+			console.error(`Failed to parse IP address of peer: ${this.nickname}. This peer may not be able to send or receive files.`)
 		}
 		wsConn.send(`Your nickname: ${this.nickname}`)
 		this.onMessage = (ev: MessageEvent) => console.log(`Peer ${this.nickname} has sent a message: ${ev.data}`)
