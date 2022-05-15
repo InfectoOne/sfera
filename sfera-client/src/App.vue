@@ -1,51 +1,57 @@
 <template>
-  <div class="column justify-center items-center">
-    <div
-      v-if="isConnected"
-      class="text-green row items-center"
-    >
-      <span>Connected to {{ serverIp }}:{{ serverPort }} </span>
-      <q-icon name="mdi-check-circle" />
-    </div>
-    <div class="row q-px-lg" style="width: 85%">
-      <!-- invisible file-input element that can be accessed by clicking on the project image (or the placeholder) -->
-      <input
-        ref="fileInput"
-        class="hidden-file-input"
-        type="file"
-        @change="afterPickFile()"
-      >
-      <div
-        v-for="peer in peersOnline"
-        :key="peer.nickname"
-        class="col-6"
-      >
-        <q-card class="q-pa-sm q-ma-xs bg-primary" @click="pickFileForPeer(peer)">
-          <q-icon
-            name="mdi-monitor"
-            size="20px"
-            class="bg-negative q-pa-sm q-mr-sm"
-            style="border-radius: 100%;"
-          />
-          <span class="text-subtitle1">{{ peer.nickname }}</span>
-        </q-card>
+  <div
+    class="column"
+    style="height: 100vh"
+  >
+    <q-toolbar color="primary">
+      <q-toolbar-title class="text-primary text-weight-bold">
+        Sfera
+      </q-toolbar-title>
+      <div class="row items-center text-caption">
+        <q-icon
+          name="mdi-account"
+          size="12px"
+          class="bg-secondary q-pa-xs"
+          style="border-radius: 100%;"
+        />
+        <span class="q-ml-sm">{{ nickname }}</span>
       </div>
-      <!--
-      Broadcast message:
-      <input v-model="message">
-      <button @click="broadcastMessage()">
-        Send
-      </button>
-      <div style="font-weight: bold; margin: 20px 0 10px 0">
-        Received Messages:
+    </q-toolbar>
+
+    <q-separator />
+    <div class="column peers-container justify-center items-center">
+      <div class="row q-px-lg">
+        <!-- invisible file-input element that can be accessed by clicking on the project image (or the placeholder) -->
+        <input
+          ref="fileInput"
+          class="hidden-file-input"
+          type="file"
+          @change="afterPickFile()"
+        >
+        <div
+          v-for="peer in peersOnline"
+          :key="peer.nickname"
+          class="col-12"
+        >
+          <q-card
+            class="q-pa-sm q-ma-xs bg-primary text-white"
+            @click="pickFileForPeer(peer)"
+          >
+            <q-icon
+              name="mdi-account"
+              size="20px"
+              class="bg-secondary q-pa-sm"
+              style="border-radius: 100%;"
+            />
+            <span class="q-pl-sm text-subtitle1">{{ peer.nickname }}</span>
+            <q-linear-progress
+              v-if="peer === selectedPeer"
+              indeterminate
+              color="secondary"
+            />
+          </q-card>
+        </div>
       </div>
-      <div
-        v-for="(chatMsg, idx) in chatMessageList"
-        :key="idx"
-      >
-        {{ chatMsg }}
-      </div>
-          -->
     </div>
   </div>
 </template>
@@ -58,6 +64,7 @@ import SferaMessage from "./models/SferaMessage"
 const isConnected = ref(false)
 const serverIp = "localhost"
 const serverPort = "4000"
+const nickname = ref("")
 const peersOnline: Ref<SferaPeer[]> = ref([])
 
 const wsConnection = new WebSocket(`ws://${serverIp}:${serverPort}`)
@@ -65,43 +72,94 @@ wsConnection.onopen = () => {
   isConnected.value = true
 }
 
-const message = ref("")
-const broadcastMessage = () => {
-  const chatMsg: SferaMessage = {
-    type: "chat-message",
-    text: message.value
-  }
-  wsConnection.send(JSON.stringify(chatMsg))
-  message.value = ""
-}
 const chatMessageList: Ref<string[]> = ref([])
-wsConnection.onmessage = (ev: MessageEvent) => {
-  if (ev.data instanceof Blob) {
-    const link = window.document.createElement("a")
-    link.href = window.URL.createObjectURL(ev.data as Blob)
-    link.download = link.href.split("/").pop() + "." + "jpg"
-    document.body.appendChild(link)
-    link.click()
-    document.body.removeChild(link)
-  } else {
-    const sferaMsg = JSON.parse(ev.data) as SferaMessage
-    switch (sferaMsg.type) {
-    case "chat-message":
-      if (sferaMsg.text) {
-        chatMessageList.value.push(sferaMsg.text)
-      }
-      break
-    case "peer-list":
-      if (sferaMsg.peerList) {
-        peersOnline.value = sferaMsg.peerList
-      }
-      break
-    case "peer-joined":
-      if (sferaMsg.peerList) {
-        peersOnline.value.push(...sferaMsg.peerList)
-      }
-      break
+wsConnection.onmessage = async (ev: MessageEvent) => {
+  const sferaMsg = JSON.parse(ev.data) as SferaMessage
+  console.log(sferaMsg)
+  switch (sferaMsg.type) {
+  case "chat-message":
+    if (sferaMsg.data) {
+      chatMessageList.value.push(sferaMsg.data)
     }
+    break
+  case "peer-list":
+    if (sferaMsg.peerList) {
+      peersOnline.value = sferaMsg.peerList
+    }
+    break
+  case "peer-joined":
+    if (sferaMsg.peerList) {
+      peersOnline.value.push(...sferaMsg.peerList)
+    }
+    break
+  case "nickname":
+    if (sferaMsg.data) {
+      nickname.value = sferaMsg.data
+    }
+    break
+  case "file":
+    if(sferaMsg.data && sferaMsg.metadata) {
+
+      const filename = sferaMsg.metadata
+      const extension = filename.substring(filename.lastIndexOf("."))
+      let fileType = ""
+      switch (extension) {
+      case ".mp3":
+        fileType = "audio/mpeg"
+        break
+      case ".txt":
+        fileType = "text/plain"
+        break
+      case ".pdf":
+        fileType = "application/pdf"
+        break
+      case ".csv":
+        fileType = "text/csv"
+        break
+      case ".html":
+        fileType = "text/html"
+        break
+      case ".rtf":
+        fileType = "text/rtf"
+        break
+      case ".xml":
+        fileType = "text/xml"
+        break
+      case ".mp4":
+        fileType = "video/mp4"
+        break
+      case ".bmp":
+        fileType = "image/bmp"
+        break
+      case ".jpeg":
+      case ".jpg":
+        fileType = "image/jpeg"
+        break
+      case ".png":
+        fileType = "image/png"
+        break
+      case ".gif":
+        fileType = "image/gif"
+        break
+      }
+      const base64str = sferaMsg.data
+      const res = await fetch(`data:${fileType};base64,${base64str}`)
+      const blob = await res.blob()
+      const file = new File([blob], filename)
+      const link = window.document.createElement("a")
+      link.href = window.URL.createObjectURL(file)
+      link.download = filename
+      document.body.appendChild(link)
+      link.click()
+      document.body.removeChild(link)
+      const confirmMsg: SferaMessage = {
+        type: "confirm-receive",
+        data: nickname.value,
+        receiver: sferaMsg.sender
+      }
+      wsConnection.send(JSON.stringify(confirmMsg))
+    }
+    break
   }
 }
 
@@ -113,10 +171,24 @@ const pickFileForPeer = (peer: SferaPeer) => {
     fileInput.value.click()
   }
 }
-const afterPickFile = () => {
+const afterPickFile = async () => {
   const file = fileInput.value?.files?.[0]
-  if( file) {
-    wsConnection.send(file)
+  if(file) {
+    const arrayBuffer = await file.arrayBuffer()
+    let byteStr = ""
+    const byteArr = new Uint8Array( arrayBuffer )
+    for (var i = 0; i < byteArr.byteLength; i++) {
+      byteStr += String.fromCharCode( byteArr[ i ] )
+    }
+    const fileAsBase64 = btoa(byteStr)
+    const sferaMsg: SferaMessage = {
+      type: "file",
+      receiver: selectedPeer.value?.nickname,
+      data: fileAsBase64,
+      metadata: file.name
+    }
+    console.log("ok", sferaMsg)
+    wsConnection.send(JSON.stringify(sferaMsg))
   }
 }
 
@@ -129,4 +201,8 @@ const afterPickFile = () => {
   visibility: hidden
   width: 0
   height: 0
+
+.peers-container
+  flex: 1
+  overflow-y: scroll
 </style>

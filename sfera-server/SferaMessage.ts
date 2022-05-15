@@ -1,8 +1,11 @@
 export default interface SferaMessage {
-  type: "peer-list" | "peer-joined" | "chat-message"
-  peerList: {
+  type: "peer-list" | "peer-joined" | "chat-message" | "nickname" | "confirm-receive" | "file"
+  peerList?: {
     nickname: string
     ipAddress: string
   }[]
-  text?: string
+  data?: string
+  metadata?: string
+  sender?: string
+  receiver?: string | null
 }

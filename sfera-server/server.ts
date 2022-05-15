@@ -3,6 +3,7 @@ import * as http from "http"
 import * as express from "express"
 import SferaPeer from "./SferaPeer"
 import {Request} from 'express';
+import SferaMessage from "./SferaMessage";
 
 
 const port = 4000
@@ -28,19 +29,31 @@ wsServer.on("connection", (conn: WebSocket, request: Request) => {
 		]
 	}))
 	peer.send({
+		type: "nickname",
+		data: peer.nickname
+	})
+	peer.send({
 		type: "peer-list",
 		peerList: fellowPeers.map(p => {
 			return {
 				nickname: p.nickname,
 				ipAddress: p.ipAddress
 			}
-		})
+		}),
 	})
 
 	peer.onMessage = (ev: MessageEvent) => {
-		const message = ev.data
+		const sferaMsg = JSON.parse(ev.data) as SferaMessage
 		const fellowPeers = getFellowsOfPeer(peer)
-		fellowPeers.forEach(p => p.wsConn.send(message))
+		if (sferaMsg.receiver == "*") {
+			fellowPeers.forEach(p => p.send(sferaMsg))
+		} else {
+			const receiver = fellowPeers.find(p => p.nickname == sferaMsg.receiver)
+			if (receiver) {
+				sferaMsg.sender = peer.nickname
+				receiver.send(sferaMsg)
+			}
+		}
 	}
 })
 
