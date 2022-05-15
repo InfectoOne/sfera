@@ -99,56 +99,14 @@ wsConnection.onmessage = async (ev: MessageEvent) => {
     break
   case "file":
     if(sferaMsg.data && sferaMsg.metadata) {
-
-      const filename = sferaMsg.metadata
-      const extension = filename.substring(filename.lastIndexOf("."))
-      let fileType = ""
-      switch (extension) {
-      case ".mp3":
-        fileType = "audio/mpeg"
-        break
-      case ".txt":
-        fileType = "text/plain"
-        break
-      case ".pdf":
-        fileType = "application/pdf"
-        break
-      case ".csv":
-        fileType = "text/csv"
-        break
-      case ".html":
-        fileType = "text/html"
-        break
-      case ".rtf":
-        fileType = "text/rtf"
-        break
-      case ".xml":
-        fileType = "text/xml"
-        break
-      case ".mp4":
-        fileType = "video/mp4"
-        break
-      case ".bmp":
-        fileType = "image/bmp"
-        break
-      case ".jpeg":
-      case ".jpg":
-        fileType = "image/jpeg"
-        break
-      case ".png":
-        fileType = "image/png"
-        break
-      case ".gif":
-        fileType = "image/gif"
-        break
-      }
+      const {name, type } = sferaMsg.metadata
       const base64str = sferaMsg.data
-      const res = await fetch(`data:${fileType};base64,${base64str}`)
+      const res = await fetch(`data:${type};base64,${base64str}`)
       const blob = await res.blob()
-      const file = new File([blob], filename)
+      const file = new File([blob], name)
       const link = window.document.createElement("a")
       link.href = window.URL.createObjectURL(file)
-      link.download = filename
+      link.download = name
       document.body.appendChild(link)
       link.click()
       document.body.removeChild(link)
@@ -181,13 +139,16 @@ const afterPickFile = async () => {
       byteStr += String.fromCharCode( byteArr[ i ] )
     }
     const fileAsBase64 = btoa(byteStr)
+    file.type
     const sferaMsg: SferaMessage = {
       type: "file",
       receiver: selectedPeer.value?.nickname,
       data: fileAsBase64,
-      metadata: file.name
+      metadata: {
+        name: file.name,
+        type: file.type
+      }
     }
-    console.log("ok", sferaMsg)
     wsConnection.send(JSON.stringify(sferaMsg))
   }
 }

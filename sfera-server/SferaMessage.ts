@@ -5,7 +5,10 @@ export default interface SferaMessage {
     ipAddress: string
   }[]
   data?: string
-  metadata?: string
+  metadata?: {
+    name: string,
+    type: string
+  }
   sender?: string
   receiver?: string | null
 }
