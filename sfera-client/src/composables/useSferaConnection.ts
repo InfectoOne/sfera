@@ -85,14 +85,14 @@ const downloadFromUrl = (url: string, filename: string) => {
   document.body.removeChild(link)
 }
 
-export default function useSferaConnection (peer: SferaPeer) {
+export default function useSferaConnection (peer?: SferaPeer) {
   const isSending = ref(false)
 
-  const sendFileTo = async (file: File) => {
+  const sendFile = async (file: File) => {
     const base64File = await fileToBase64(file)
     const sferaMsg: SferaMessage = {
       type: "file",
-      receiver: peer.nickname,
+      receiver: peer?.nickname,
       data: base64File,
       metadata: {
         name: file.name,
@@ -104,9 +104,9 @@ export default function useSferaConnection (peer: SferaPeer) {
 
     wsConnection.addEventListener("message", (ev) => {
       const sferaMsg = JSON.parse(ev.data) as SferaMessage
-      if(sferaMsg.type == "confirm-receive" && sferaMsg.sender == peer.nickname) {
+      if(sferaMsg.type == "confirm-receive" && sferaMsg.sender == peer?.nickname) {
         isSending.value = false
-        Notify.create({ message: `File transfer to "${peer.nickname}" complete!` })
+        Notify.create({ message: `File transfer to "${peer?.nickname}" complete!` })
       }
     })
   }
@@ -116,6 +116,6 @@ export default function useSferaConnection (peer: SferaPeer) {
     nickname,
     peersOnline,
     isSending,
-    sendFileTo
+    ...(peer ? {sendFile} : {})
   }
 }

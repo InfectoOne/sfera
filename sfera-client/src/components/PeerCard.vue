@@ -1,6 +1,7 @@
 <template>
   <q-card
     class="q-pa-sm q-ma-xs bg-primary text-white"
+    :style="{opacity: isSending ? 0.5 :1 }"
     @click="pickFileForPeer()"
   >
     <q-icon
@@ -14,12 +15,14 @@
       v-if="isSending"
       indeterminate
       color="secondary"
+      size="10px"
     />
     <!-- invisible file-input element that can be accessed by clicking on the project image (or the placeholder) -->
     <input
       ref="fileInput"
       class="hidden-file-input"
       type="file"
+      multiple
       @change="afterPickFile()"
     >
   </q-card>
@@ -37,12 +40,12 @@ const props = defineProps<{
 const { peer } = toRefs(props)
 
 const fileInput: Ref<HTMLInputElement | null> = ref(null)
-const { isSending, sendFileTo } = useSferaConnection(peer.value)
+const { isSending, sendFile } = useSferaConnection(peer.value)
 
 const afterPickFile = async () => {
   const file = fileInput.value?.files?.[0]
-  if( file ) {
-    sendFileTo(file)
+  if( file && sendFile ) {
+    void sendFile(file)
   }
 }
 
