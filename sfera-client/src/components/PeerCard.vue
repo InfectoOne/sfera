@@ -11,6 +11,7 @@
     />
     <span class="q-pl-sm text-subtitle1">{{ peer.nickname }}</span>
     <q-linear-progress
+      v-if="isSending"
       indeterminate
       color="secondary"
     />
@@ -36,12 +37,12 @@ const props = defineProps<{
 const { peer } = toRefs(props)
 
 const fileInput: Ref<HTMLInputElement | null> = ref(null)
-const { sendFileTo } = useSferaConnection()
+const { isSending, sendFileTo } = useSferaConnection(peer.value)
 
 const afterPickFile = async () => {
   const file = fileInput.value?.files?.[0]
   if( file ) {
-    sendFileTo(file, peer.value.nickname)
+    sendFileTo(file)
   }
 }
 

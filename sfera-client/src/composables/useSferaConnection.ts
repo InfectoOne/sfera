@@ -1,4 +1,4 @@
-import { openURL } from "quasar"
+import { Notify } from "quasar"
 import SferaMessage from "src/models/SferaMessage"
 import SferaPeer from "src/models/SferaPeer"
 import { Ref, ref } from "vue"
@@ -17,7 +17,6 @@ wsConnection.onopen = () => {
 
 wsConnection.onmessage = async (ev: MessageEvent) => {
   const sferaMsg = JSON.parse(ev.data) as SferaMessage
-  console.log(sferaMsg)
   switch (sferaMsg.type) {
   case "chat-message":
     if (sferaMsg.data) {
@@ -44,7 +43,7 @@ wsConnection.onmessage = async (ev: MessageEvent) => {
       const { name, type } = sferaMsg.metadata
       const base64str = sferaMsg.data
       const { url } = await base64ToFile(base64str, name, type)
-      openURL(url)  // will download the file
+      downloadFromUrl(url, name)
       const confirmMsg: SferaMessage = {
         type: "confirm-receive",
         data: nickname.value,
@@ -77,25 +76,46 @@ const base64ToFile = async (base64str: string, name: string, type: string) => {
   }
 }
 
-const sendFileTo = async (file: File, receiverNickname: string) => {
-  const base64File = await fileToBase64(file)
-  const sferaMsg: SferaMessage = {
-    type: "file",
-    receiver: receiverNickname,
-    data: base64File,
-    metadata: {
-      name: file.name,
-      type: file.type
-    }
-  }
-  wsConnection.send(JSON.stringify(sferaMsg))
+const downloadFromUrl = (url: string, filename: string) => {
+  const link = window.document.createElement("a")
+  link.href = url
+  link.download = filename
+  document.body.appendChild(link)
+  link.click()
+  document.body.removeChild(link)
 }
 
-export default function useSferaConnection () {
+export default function useSferaConnection (peer: SferaPeer) {
+  const isSending = ref(false)
+
+  const sendFileTo = async (file: File) => {
+    const base64File = await fileToBase64(file)
+    const sferaMsg: SferaMessage = {
+      type: "file",
+      receiver: peer.nickname,
+      data: base64File,
+      metadata: {
+        name: file.name,
+        type: file.type
+      }
+    }
+    wsConnection.send(JSON.stringify(sferaMsg))
+    isSending.value = true
+
+    wsConnection.addEventListener("message", (ev) => {
+      const sferaMsg = JSON.parse(ev.data) as SferaMessage
+      if(sferaMsg.type == "confirm-receive" && sferaMsg.sender == peer.nickname) {
+        isSending.value = false
+        Notify.create({ message: `File transfer to "${peer.nickname}" complete!` })
+      }
+    })
+  }
+
   return {
     isConnected,
     nickname,
     peersOnline,
+    isSending,
     sendFileTo
   }
 }
