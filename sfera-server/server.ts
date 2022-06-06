@@ -13,7 +13,7 @@ const wsServer = new WebSocketServer({server})
 
 const peerList: SferaPeer[] = []
 
-const getFellowsOfPeer = (peer: SferaPeer) => peerList.filter(p => p.nickname != peer.nickname)
+const getFellowsOfPeer = (peer: SferaPeer) => peerList.filter(p => p.nickname != peer.nickname && p.ipAddress != peer.ipAddress)
 
 wsServer.on("connection", (conn: WebSocket, request: Request) => {
 	const peer = new SferaPeer(conn, request)
@@ -41,7 +41,7 @@ wsServer.on("connection", (conn: WebSocket, request: Request) => {
 			}
 		}),
 	})
-
+	
 	peer.onMessage = (ev: MessageEvent) => {
 		const sferaMsg = JSON.parse(ev.data) as SferaMessage
 		const fellowPeers = getFellowsOfPeer(peer)
@@ -53,6 +53,14 @@ wsServer.on("connection", (conn: WebSocket, request: Request) => {
 				sferaMsg.sender = peer.nickname
 				receiver.send(sferaMsg)
 			}
+		}
+	}
+	
+	peer.onClose = (ev: CloseEvent) => {
+		const index = peerList.findIndex(p => p == peer)
+		if (index != -1) {
+			peerList.splice(index, 1)
+			console.log(`Peer ${peer.nickname} disconnected!`)
 		}
 	}
 })

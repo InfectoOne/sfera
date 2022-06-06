@@ -7,14 +7,14 @@
       <q-toolbar-title class="text-primary text-weight-bold">
         Sfera
       </q-toolbar-title>
-      <div class="row items-center text-caption">
+      <div class="row items-center">
         <q-icon
           name="mdi-account"
           size="12px"
           class="bg-secondary q-pa-xs"
           style="border-radius: 100%;"
         />
-        <span class="q-ml-sm">{{ nickname }}</span>
+        <span class="q-ml-sm text-caption">{{ nickname }}</span>
         <div
           v-if="showTooltip"
           ref="arrowUp"
@@ -24,7 +24,8 @@
           v-model="showTooltip"
           :offset="[-22, 5]"
           anchor="bottom left"
-          style="width: 230px; margin-right: 10px;"
+          class="row justify-center items-center"
+          style="width: 180px;margin-right: 10px;"
         >
           Connected! This is your nickname.
         </q-tooltip>
@@ -32,9 +33,19 @@
     </q-toolbar>
 
     <q-separator />
-    <server-status-message />
 
     <div class="column peers-container justify-center items-center">
+      <div
+        v-if="isConnected && peersOnline.length == 0"
+        class="column justify-center items-center"
+        style="opacity: 0.6;"
+      >
+        <q-icon
+          name="mdi-emoticon-cry"
+          size="60px"
+        />
+        <span class="text-h5">No peers currently online</span>
+      </div>
       <div class="row q-px-lg">
         <peer-card
           v-for="peer in peersOnline"
@@ -58,9 +69,8 @@ import useSferaConnection from "./composables/useSferaConnection"
 import PeerCard from "./components/PeerCard.vue"
 import { ref, watch } from "vue"
 import { QTooltip } from "quasar"
-import ServerStatusMessage from "src/components/ServerStatusMessage.vue"
 
-const { nickname, peersOnline } = useSferaConnection()
+const { nickname, isConnected,  peersOnline } = useSferaConnection()
 
 const showTooltip = ref(false)
 watch(nickname, () => {

@@ -4,7 +4,7 @@ import SferaPeer from "src/models/SferaPeer"
 import { Ref, ref } from "vue"
 
 const isConnected = ref(false)
-const serverIp = "localhost"
+const serverIp = "192.168.0.220"
 const serverPort = "4000"
 const nickname = ref("")
 const peersOnline: Ref<SferaPeer[]> = ref([])
@@ -29,6 +29,7 @@ wsConnection.onmessage = async (ev: MessageEvent) => {
     }
     break
   case "peer-joined":
+    console.log("aha", sferaMsg)
     if (sferaMsg.peerList) {
       peersOnline.value.push(...sferaMsg.peerList)
     }

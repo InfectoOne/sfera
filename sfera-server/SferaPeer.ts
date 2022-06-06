@@ -6,6 +6,7 @@ export default class SferaPeer {
 	nickname: string
 	ipAddress: string
 	onMessage: (ev: MessageEvent) => void
+	onClose: (ev: CloseEvent) => void
 
 	constructor(wsConn: WebSocket, request: Request) {
 		this.wsConn = wsConn
@@ -15,9 +16,12 @@ export default class SferaPeer {
 		if(!this.ipAddress) {
 			console.error(`Failed to parse IP address of peer: ${this.nickname}. This peer may not be able to send or receive files.`)
 		}
-		wsConn.send(`Your nickname: ${this.nickname}`)
+
 		this.onMessage = (ev: MessageEvent) => console.log(`Peer ${this.nickname} has sent a message: ${ev.data}`)
 		this.wsConn.onmessage = (ev: MessageEvent) => this.onMessage(ev)
+
+		this.onClose = (ev: CloseEvent) => console.log(`Peer ${this.nickname} disconnected.`)
+		this.wsConn.onclose = (ev: CloseEvent) => this.onClose(ev)
 	}
 
 	private static parseIpFromRequest(request: Request) {

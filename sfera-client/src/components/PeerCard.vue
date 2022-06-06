@@ -43,9 +43,11 @@ const fileInput: Ref<HTMLInputElement | null> = ref(null)
 const { isSending, sendFile } = useSferaConnection(peer.value)
 
 const afterPickFile = async () => {
-  const file = fileInput.value?.files?.[0]
-  if( file && sendFile ) {
-    void sendFile(file)
+  const fileList = fileInput.value?.files
+  if (fileList && sendFile) {
+    for(const file of fileList) {
+      void sendFile(file)
+    }
   }
 }
 
