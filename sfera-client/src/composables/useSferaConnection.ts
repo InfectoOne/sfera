@@ -1,89 +1,73 @@
 import { Notify } from "quasar"
 import SferaMessage from "src/models/SferaMessage"
 import SferaPeer from "src/models/SferaPeer"
-import { Ref, ref } from "vue"
+import { readonly, Ref, ref, toRefs } from "vue"
+import { base64ToFile, fileToBase64, downloadFromUrl } from "src/fileHelper"
 
-const isConnected = ref(false)
-const serverIp = "192.168.0.220"
-const serverPort = "4000"
+const serverIp: Ref<string | null> = ref(null)
+const serverPort: Ref<number | null> = ref(null)
+
 const nickname = ref("")
 const peersOnline: Ref<SferaPeer[]> = ref([])
 const chatMessageList: Ref<string[]> = ref([])
+const isConnected = ref(false)
+const wsConnection: Ref<WebSocket | null>  = ref (null)
 
-const wsConnection = new WebSocket(`ws://${serverIp}:${serverPort}`)
-wsConnection.onopen = () => {
-  isConnected.value = true
-}
+const connect = async (ip: string, port: number) => {
+  serverIp.value = ip
+  serverPort.value = port
+  return new Promise((resolve, reject) => {
+    wsConnection.value = new WebSocket(`ws://${serverIp.value}:${serverPort.value}`)
+    wsConnection.value.onopen = () => {
+      isConnected.value = true
+      resolve(true)
+    }
+    wsConnection.value.onclose = () => {
+      isConnected.value = false
+      reject()
+    }
 
-wsConnection.onmessage = async (ev: MessageEvent) => {
-  const sferaMsg = JSON.parse(ev.data) as SferaMessage
-  switch (sferaMsg.type) {
-  case "chat-message":
-    if (sferaMsg.data) {
-      chatMessageList.value.push(sferaMsg.data)
-    }
-    break
-  case "peer-list":
-    if (sferaMsg.peerList) {
-      peersOnline.value = sferaMsg.peerList
-    }
-    break
-  case "peer-joined":
-    console.log("aha", sferaMsg)
-    if (sferaMsg.peerList) {
-      peersOnline.value.push(...sferaMsg.peerList)
-    }
-    break
-  case "nickname":
-    if (sferaMsg.data) {
-      nickname.value = sferaMsg.data
-    }
-    break
-  case "file":
-    if(sferaMsg.data && sferaMsg.metadata) {
-      const { name, type } = sferaMsg.metadata
-      const base64str = sferaMsg.data
-      const { url } = await base64ToFile(base64str, name, type)
-      downloadFromUrl(url, name)
-      const confirmMsg: SferaMessage = {
-        type: "confirm-receive",
-        data: nickname.value,
-        receiver: sferaMsg.sender
+    wsConnection.value.onmessage = async (ev: MessageEvent) => {
+      const sferaMsg = JSON.parse(ev.data) as SferaMessage
+      switch (sferaMsg.type) {
+      case "chat-message":
+        if (sferaMsg.data) {
+          chatMessageList.value.push(sferaMsg.data)
+        }
+        break
+      case "peer-list":
+        if (sferaMsg.peerList) {
+          peersOnline.value = sferaMsg.peerList
+        }
+        break
+      case "peer-joined":
+        console.log("aha", sferaMsg)
+        if (sferaMsg.peerList) {
+          peersOnline.value.push(...sferaMsg.peerList)
+        }
+        break
+      case "nickname":
+        if (sferaMsg.data) {
+          nickname.value = sferaMsg.data
+        }
+        break
+      case "file":
+        if(sferaMsg.data && sferaMsg.metadata) {
+          const { name, type } = sferaMsg.metadata
+          const base64str = sferaMsg.data
+          const { url } = await base64ToFile(base64str, name, type)
+          downloadFromUrl(url, name)
+          const confirmMsg: SferaMessage = {
+            type: "confirm-receive",
+            data: nickname.value,
+            receiver: sferaMsg.sender
+          }
+          wsConnection.value?.send(JSON.stringify(confirmMsg))
+        }
+        break
       }
-      wsConnection.send(JSON.stringify(confirmMsg))
     }
-    break
-  }
-}
-
-const fileToBase64 = async (file: File) => {
-  const arrayBuffer = await file.arrayBuffer()
-  let byteStr = ""
-  const byteArr = new Uint8Array( arrayBuffer )
-  for (let i = 0; i < byteArr.byteLength; i++) {
-    byteStr += String.fromCharCode( byteArr[ i ] )
-  }
-  return btoa(byteStr)
-}
-
-const base64ToFile = async (base64str: string, name: string, type: string) => {
-  const res = await fetch(`data:${type};base64,${base64str}`)
-  const blob = await res.blob()
-  const file = new File([blob], name)
-  const url = window.URL.createObjectURL(file)
-  return {
-    file,
-    url
-  }
-}
-
-const downloadFromUrl = (url: string, filename: string) => {
-  const link = window.document.createElement("a")
-  link.href = url
-  link.download = filename
-  document.body.appendChild(link)
-  link.click()
-  document.body.removeChild(link)
+  })
 }
 
 export default function useSferaConnection (peer?: SferaPeer) {
@@ -100,10 +84,10 @@ export default function useSferaConnection (peer?: SferaPeer) {
         type: file.type
       }
     }
-    wsConnection.send(JSON.stringify(sferaMsg))
+    wsConnection.value?.send(JSON.stringify(sferaMsg))
     isSending.value = true
 
-    wsConnection.addEventListener("message", (ev) => {
+    wsConnection.value?.addEventListener("message", (ev) => {
       const sferaMsg = JSON.parse(ev.data) as SferaMessage
       if(sferaMsg.type == "confirm-receive" && sferaMsg.sender == peer?.nickname) {
         isSending.value = false
@@ -113,10 +97,15 @@ export default function useSferaConnection (peer?: SferaPeer) {
   }
 
   return {
-    isConnected,
-    nickname,
-    peersOnline,
-    isSending,
+    connect,
+    ...toRefs(readonly({
+      isConnected,
+      nickname,
+      peersOnline,
+      isSending,
+      serverIp,
+      serverPort,
+    })),
     ...(peer ? {sendFile} : {})
   }
 }
