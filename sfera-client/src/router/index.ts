@@ -6,6 +6,7 @@ import {
   createWebHistory,
 } from "vue-router"
 import routes from "./routes"
+import useSferaConnection, { LOCALSTORAGE_SERVERIP_KEY, LOCALSTORAGE_SERVERPORT_KEY } from "src/composables/useSferaConnection"
 
 /*
  * If not building with SSR mode, you can
@@ -31,6 +32,29 @@ export default route(function (/* { store, ssrContext } */) {
     history: createHistory(
       process.env.MODE === "ssr" ? void 0 : process.env.VUE_ROUTER_BASE
     ),
+  })
+  Router.beforeEach((to, from, next) => {
+    const { isConnected, connect } = useSferaConnection()
+    if (!isConnected.value) {
+      const localStorageIp = localStorage.getItem(LOCALSTORAGE_SERVERIP_KEY)
+      const localStoragePort = localStorage.getItem(LOCALSTORAGE_SERVERPORT_KEY)
+      if (localStorageIp && localStoragePort && !Number.isNaN(localStoragePort)) {
+        connect(localStorageIp, Number(localStoragePort))
+        if (to.path == "/") {
+          next("/peers")
+        } else {
+          next()
+        }
+      } else {
+        next()
+      }
+    } else {
+      if (to.path == "/") {
+        next("/peers")
+      } else {
+        next()
+      }
+    }
   })
 
   return Router

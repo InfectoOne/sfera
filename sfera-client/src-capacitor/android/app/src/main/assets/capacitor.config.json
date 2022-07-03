@@ -1,0 +1,8 @@
+{
+  "appId": "org.sfera.infectoone",
+  "appName": "Sfera",
+  "bundledWebRuntime": false,
+  "npmClient": "npm",
+  "webDir": "www",
+  "linuxAndroidStudioPath": "/home/veles/android-studio/bin/studio.sh"
+}

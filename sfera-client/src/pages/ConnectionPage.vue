@@ -23,6 +23,15 @@
         label="Server Port"
         filled
       />
+      <div
+        class="row justify-begin"
+        style="width: 215px;"
+      >
+        <q-checkbox
+          v-model="remember"
+          label="Don't ask me again"
+        />
+      </div>
       <q-btn
         label="Connect!"
         color="primary"
@@ -41,11 +50,12 @@ import { useRouter } from "vue-router"
 
 const ipAddress = ref("")
 const port = ref("")
+const remember = ref(false)
 
 const { connect } = useSferaConnection()
 const router = useRouter()
 const tryConnect = () => {
-  connect(ipAddress.value, Number(port.value))
+  connect(ipAddress.value, Number(port.value), remember.value)
   router.push("/peers")
 }
 </script>
