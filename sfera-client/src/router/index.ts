@@ -39,7 +39,7 @@ export default route(function (/* { store, ssrContext } */) {
       const localStorageIp = localStorage.getItem(LOCALSTORAGE_SERVERIP_KEY)
       const localStoragePort = localStorage.getItem(LOCALSTORAGE_SERVERPORT_KEY)
       if (localStorageIp && localStoragePort && !Number.isNaN(localStoragePort)) {
-        connect(localStorageIp, Number(localStoragePort))
+        void connect(localStorageIp, Number(localStoragePort))
         if (to.path == "/") {
           next("/peers")
         } else {

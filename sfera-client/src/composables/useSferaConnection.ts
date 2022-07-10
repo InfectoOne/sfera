@@ -93,14 +93,15 @@ export default function useSferaConnection (peer?: SferaPeer) {
     }
     wsConnection.value?.send(JSON.stringify(sferaMsg))
     isSending.value = true
-
-    wsConnection.value?.addEventListener("message", (ev) => {
+    const onConfirmReceive = (ev: MessageEvent) => {
       const sferaMsg = JSON.parse(ev.data) as SferaMessage
       if(sferaMsg.type == "confirm-receive" && sferaMsg.sender == peer?.nickname) {
         isSending.value = false
         Notify.create({ message: `File transfer to "${peer?.nickname}" complete!` })
+        wsConnection.value?.removeEventListener("message", onConfirmReceive)
       }
-    })
+    }
+    wsConnection.value?.addEventListener("message", onConfirmReceive)
   }
 
   return {

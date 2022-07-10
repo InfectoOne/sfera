@@ -55,7 +55,7 @@ const remember = ref(false)
 const { connect } = useSferaConnection()
 const router = useRouter()
 const tryConnect = () => {
-  connect(ipAddress.value, Number(port.value), remember.value)
+  void connect(ipAddress.value, Number(port.value), remember.value)
   router.push("/peers")
 }
 </script>
