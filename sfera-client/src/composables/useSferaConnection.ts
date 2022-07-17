@@ -39,7 +39,7 @@ const connect = async (ip: string, port: number, remember = false) => {
       switch (sferaMsg.type) {
       case "chat-message":
         if (sferaMsg.data) {
-          chatMessageList.value.push(sferaMsg.data)
+          chatMessageList.value.push(sferaMsg.data as string)
         }
         break
       case "peer-list":
@@ -48,20 +48,28 @@ const connect = async (ip: string, port: number, remember = false) => {
         }
         break
       case "peer-joined":
-        console.log("aha", sferaMsg)
         if (sferaMsg.peerList) {
           peersOnline.value.push(...sferaMsg.peerList)
         }
         break
       case "nickname":
         if (sferaMsg.data) {
-          nickname.value = sferaMsg.data
+          nickname.value = sferaMsg.data as string
         }
         break
+      case "rtc-offer":
+        const offer = sferaMsg.data as RTCSessionDescription
+        rtcReceive(sferaMsg.sender as string, offer)
+      case "rtc-answer":
+        const answer = sferaMsg.data as RTCSessionDescription
+        rtcPeerConn.setRemoteDescription(answer)
+      case "ice-candidate":
+        const candidate = sferaMsg.data as RTCIceCandidate
+        rtcPeerConn.addIceCandidate(candidate)
       case "file":
         if(sferaMsg.data && sferaMsg.metadata) {
           const { name, type } = sferaMsg.metadata
-          const base64str = sferaMsg.data
+          const base64str = sferaMsg.data as string
           const { url } = await base64ToFile(base64str, name, type)
           downloadFromUrl(url, name)
           const confirmMsg: SferaMessage = {
@@ -73,6 +81,72 @@ const connect = async (ip: string, port: number, remember = false) => {
         }
         break
       }
+    }
+  })
+}
+
+const rtcPeerConn = new RTCPeerConnection()
+
+const rtcSend = (peer: SferaPeer /*, file: File */) => {
+  rtcPeerConn.onnegotiationneeded = async () => {
+    try {
+      await rtcPeerConn.setLocalDescription(await rtcPeerConn.createOffer())
+      const sferaMsg = {
+        type: "rtc-offer",
+        receiver: peer.nickname as string,
+        data: rtcPeerConn.localDescription
+      }
+      wsConnection.value?.send(JSON.stringify(sferaMsg))
+    } catch (error) {
+      console.error(error)
+    }
+  }
+
+  rtcPeerConn.onicecandidate = ({candidate}) => {
+    const sferaMsg = {
+      type: "ice-candidate",
+      receiver: peer.nickname,
+      data: candidate
+    }
+    wsConnection.value?.send(JSON.stringify(sferaMsg))
+  }
+
+  const sendChannel = rtcPeerConn.createDataChannel("sendChannel")
+  sendChannel.binaryType = "arraybuffer"
+  sendChannel.onopen = async () => {
+    console.log("sending channel open")
+    //const arraybuffer = await file.arrayBuffer()
+    sendChannel.send("test")
+  }
+}
+
+const rtcReceive = async (peerNickname: string, offer: RTCSessionDescription) => {
+  rtcPeerConn.setRemoteDescription(offer)
+  await rtcPeerConn.setLocalDescription(await rtcPeerConn.createAnswer())
+  const sferaMsg = {
+    type: "rtc-answer",
+    receiver: peerNickname,
+    data: rtcPeerConn.localDescription
+  }
+  wsConnection.value?.send(JSON.stringify(sferaMsg))
+
+  rtcPeerConn.onicecandidate = ({candidate}) => {
+    const sferaMsg = {
+      type: "ice-candidate",
+      receiver: peerNickname,
+      data: candidate
+    }
+    wsConnection.value?.send(JSON.stringify(sferaMsg))
+  }
+
+  const receiveChannel = rtcPeerConn.createDataChannel("sendChannel")
+  receiveChannel.binaryType = "arraybuffer"
+  rtcPeerConn.addEventListener("datachannel", (e) => {
+    const { channel }  = e
+    channel.onmessage = (e) => {
+      const { data } = e
+      console.log(data)
+      channel.close()
     }
   })
 }
@@ -91,6 +165,9 @@ export default function useSferaConnection (peer?: SferaPeer) {
         type: file.type
       }
     }
+
+    rtcSend(peer as SferaPeer)
+    return
     wsConnection.value?.send(JSON.stringify(sferaMsg))
     isSending.value = true
     const onConfirmReceive = (ev: MessageEvent) => {
