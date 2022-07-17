@@ -29,7 +29,7 @@
 </template>
 
 <script setup lang="ts">
-import useSferaConnection from "src/composables/useSferaConnection"
+import usePeerConnection from "src/composables/usePeerConnection"
 import SferaPeer from "src/models/SferaPeer"
 import { Ref, ref, toRefs } from "vue"
 
@@ -40,7 +40,7 @@ const props = defineProps<{
 const { peer } = toRefs(props)
 
 const fileInput: Ref<HTMLInputElement | null> = ref(null)
-const { isSending, sendFile } = useSferaConnection(peer.value)
+const { isSending, sendFile } = usePeerConnection(peer.value)
 
 const afterPickFile = async () => {
   const fileList = fileInput.value?.files
