@@ -4,10 +4,11 @@ export default interface SferaMessage {
     nickname: string
     ipAddress: string
   }[]
-  data?: string | RTCSessionDescription | RTCIceCandidate
+  data?: string | RTCSessionDescription | RTCIceCandidate | null
   metadata?: {
     name: string
     type: string
+    size: number
   }
   sender?: string
   receiver?: string | null

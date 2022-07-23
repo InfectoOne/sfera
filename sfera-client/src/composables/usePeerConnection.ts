@@ -1,7 +1,10 @@
+import { downloadFromUrl } from "src/fileHelper"
 import SferaMessage from "src/models/SferaMessage"
 import SferaPeer from "src/models/SferaPeer"
 import { ref } from "vue"
 import useSferaConnection from "./useSferaConnection"
+
+const CHUNK_SIZE_KB = 16 * 1024
 
 export default function usePeerConnection(peer: SferaPeer) {
   let peerConnection: RTCPeerConnection | null = null
@@ -9,7 +12,7 @@ export default function usePeerConnection(peer: SferaPeer) {
   const isSending = ref(false)
 
   // the Sfera WebSocket Server acts as a signaling server for the RTC file transfer
-  // Here, we add an event listener for RTC-relevant messages only from given peer
+  // Here, we add another event listener for RTC-relevant messages for the respective peer
   wsConnection.value?.addEventListener("message", (ev) => {
     const sferaMsg = JSON.parse(ev.data) as SferaMessage
     if (sferaMsg.sender != peer.nickname) {
@@ -18,7 +21,11 @@ export default function usePeerConnection(peer: SferaPeer) {
     switch (sferaMsg.type) {
     case "rtc-offer":
       const offer = sferaMsg.data as RTCSessionDescription
-      receiveFile(offer)
+      const fileMetadata = sferaMsg.metadata
+      if (!fileMetadata) {
+        throw Error("Sfera RTC file transfer failed: No file metadata was sent!")
+      }
+      receiveFile(offer, fileMetadata)
     case "rtc-answer":
       const answer = sferaMsg.data as RTCSessionDescription
       peerConnection?.setRemoteDescription(answer)
@@ -35,10 +42,15 @@ export default function usePeerConnection(peer: SferaPeer) {
     peerConnection.onnegotiationneeded = async () => {
       try {
         await peerConnection?.setLocalDescription(await peerConnection?.createOffer())
-        const sferaMsg = {
+        const sferaMsg: SferaMessage = {
           type: "rtc-offer",
           receiver: peer.nickname as string,
-          data: peerConnection?.localDescription
+          data: peerConnection?.localDescription,
+          metadata: {
+            name: file.name,
+            type: file.type,
+            size: file.size
+          }
         }
         wsConnection.value?.send(JSON.stringify(sferaMsg))
       } catch (error) {
@@ -47,7 +59,7 @@ export default function usePeerConnection(peer: SferaPeer) {
     }
 
     peerConnection.onicecandidate = ({candidate}) => {
-      const sferaMsg = {
+      const sferaMsg: SferaMessage = {
         type: "ice-candidate",
         receiver: peer.nickname,
         data: candidate
@@ -60,14 +72,23 @@ export default function usePeerConnection(peer: SferaPeer) {
     dataChannel.onopen = async () => {
       // once RTC offers, answers and ICE candidates have been exchanged:
       // the data channel will open and ready for file transfer
-      const arraybuffer = await file.arrayBuffer()
-      console.log("🚀 ~ file: useSferaConnection.ts ~ line 106 ~ dataChannel.onopen= ~ arraybuffer", arraybuffer)
-      dataChannel.send("test")
+      let buffer = await file.arrayBuffer()
+      while (buffer.byteLength) {
+        const chunk = buffer.slice(0, CHUNK_SIZE_KB)
+        buffer = buffer.slice(CHUNK_SIZE_KB, buffer.byteLength)
+        dataChannel.send(chunk)
+      }
       isSending.value = false
     }
   }
 
-  const receiveFile = async (offer: RTCSessionDescription) => {
+  const receiveFile = async (
+    offer: RTCSessionDescription,
+    metadata: {
+      name: string,
+      type: string,
+      size: number
+    }) => {
     peerConnection = new RTCPeerConnection()
     peerConnection.setRemoteDescription(offer)
     await peerConnection.setLocalDescription(await peerConnection.createAnswer())
@@ -93,10 +114,20 @@ export default function usePeerConnection(peer: SferaPeer) {
       // once RTC offers, answers and ICE candidates have been exchanged:
       // the data channel will open and ready for file transfer
       const { channel }  = e
+      const buffer: Blob[] = []
+      let bytesReceived = 0
       channel.onmessage = (e) => {
         const { data } = e
-        console.log(data)
-        channel.close()
+        const chunk = data as Blob
+        buffer.push(chunk)
+        bytesReceived += chunk.size
+        if (bytesReceived >= metadata.size) {
+          const file = new Blob(buffer)
+          const url = window.URL.createObjectURL(file)
+          downloadFromUrl(url, metadata.name)
+          channel.close()
+          isSending.value = false
+        }
       }
     })
   }

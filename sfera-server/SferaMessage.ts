@@ -7,7 +7,8 @@ export default interface SferaMessage {
   data?: string | RTCSessionDescription | RTCIceCandidate
   metadata?: {
     name: string,
-    type: string
+    type: string,
+    size: number
   }
   sender?: string
   receiver?: string | null
