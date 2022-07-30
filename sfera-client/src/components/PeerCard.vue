@@ -1,7 +1,7 @@
 <template>
   <q-card
     class="q-pa-sm q-ma-xs bg-primary text-white"
-    :style="{opacity: isSending ? 0.5 :1 }"
+    :style="{opacity: isActive ? 0.5 :1 }"
     @click="pickFileForPeer()"
   >
     <q-icon
@@ -11,18 +11,23 @@
       style="border-radius: 100%;"
     />
     <span class="q-pl-sm text-subtitle1">{{ peer.nickname }}</span>
-    <q-linear-progress
-      v-if="isSending"
-      indeterminate
+    <q-circular-progress
+      v-if="isActive"
+      :value="progress"
+      show-value
       color="secondary"
-      size="10px"
-    />
+      size="50px"
+      :thickness="0.4"
+    >
+      {{ progress }} %
+    </q-circular-progress>
     <!-- invisible file-input element that can be accessed by clicking on the project image (or the placeholder) -->
     <input
       ref="fileInput"
       class="hidden-file-input"
       type="file"
       multiple
+      :disabled="isActive"
       @change="afterPickFile()"
     >
   </q-card>
@@ -40,13 +45,12 @@ const props = defineProps<{
 const { peer } = toRefs(props)
 
 const fileInput: Ref<HTMLInputElement | null> = ref(null)
-const { isSending, sendFile } = usePeerConnection(peer.value)
-
+const { isActive, progress, sendFile } = usePeerConnection(peer.value)
 const afterPickFile = async () => {
   const fileList = fileInput.value?.files
   if (fileList && sendFile) {
     for(const file of fileList) {
-      void sendFile(file)
+      await sendFile(file)
     }
   }
 }
