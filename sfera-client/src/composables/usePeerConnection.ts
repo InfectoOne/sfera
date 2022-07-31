@@ -3,15 +3,19 @@ import SferaMessage from "src/models/SferaMessage"
 import SferaPeer from "src/models/SferaPeer"
 import { computed, Ref, ref } from "vue"
 import useSferaConnection from "./useSferaConnection"
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
+import adapter from "webrtc-adapter"
 
-const CHUNK_SIZE_KB = 16 * 1024
+const CHUNK_SIZE_KB = 8 * 1024
+const rtcConfig = {
+  iceServers: []
+}
 
 export default function usePeerConnection(peer: SferaPeer) {
   let peerConnection: RTCPeerConnection | null = null
   const { wsConnection } = useSferaConnection()
   const isActive = ref(false)
   const bytesTransferred = ref(0)
-
   // the Sfera WebSocket Server acts as a signaling server for the RTC file transfer
   // Here, we add another event listener for RTC-relevant messages for the respective peer
   wsConnection.value?.addEventListener("message", (ev) => {
@@ -23,18 +27,19 @@ export default function usePeerConnection(peer: SferaPeer) {
     case "rtc-offer":
       const offer = sferaMsg.data as RTCSessionDescription
       const fileMetadata = sferaMsg.metadata
-      console.log("offer")
       if (!fileMetadata) {
         throw Error("Sfera RTC file transfer failed: No file metadata was sent!")
       }
       receiveFile(offer, fileMetadata)
+      break
     case "rtc-answer":
       const answer = sferaMsg.data as RTCSessionDescription
-      console.log("answer")
       peerConnection?.setRemoteDescription(answer)
+      break
     case "ice-candidate":
       const candidate = sferaMsg.data as RTCIceCandidate
       peerConnection?.addIceCandidate(candidate)
+      break
     }
   })
 
@@ -43,12 +48,11 @@ export default function usePeerConnection(peer: SferaPeer) {
   const sendFile = async (file: File) => {
     return new Promise((resolve) => {
       isActive.value = true
-      peerConnection = new RTCPeerConnection()
+      peerConnection = new RTCPeerConnection(rtcConfig)
       currentFileSize.value = file.size
 
       peerConnection.onnegotiationneeded = async () => {
         try {
-          console.log("negotiation needed")
           await peerConnection?.setLocalDescription(await peerConnection?.createOffer())
           const sferaMsg: SferaMessage = {
             type: "rtc-offer",
@@ -67,24 +71,24 @@ export default function usePeerConnection(peer: SferaPeer) {
       }
 
       peerConnection.onicecandidate = ({candidate}) => {
-        console.log("ice candidate needed", candidate)
-        const sferaMsg: SferaMessage = {
-          type: "ice-candidate",
-          receiver: peer.nickname,
-          data: candidate
+        if (candidate) {
+          const sferaMsg: SferaMessage = {
+            type: "ice-candidate",
+            receiver: peer.nickname,
+            data: candidate
+          }
+          wsConnection.value?.send(JSON.stringify(sferaMsg))
         }
-        wsConnection.value?.send(JSON.stringify(sferaMsg))
       }
 
-      const dataChannel = peerConnection.createDataChannel("dataChannel")
+      const dataChannel = peerConnection.createDataChannel("dataChannel", {ordered: true})
       dataChannel.binaryType = "arraybuffer"
 
       dataChannel.onopen = async () => {
-        console.log("channel open")
+
         // once RTC offers, answers and ICE candidates have been exchanged:
         // the data channel will open and ready for file transfer
         let buffer = await file.arrayBuffer()
-
         const sendNextChunk = () => {
           const chunk = buffer.slice(0, CHUNK_SIZE_KB)
           buffer = buffer.slice(CHUNK_SIZE_KB, buffer.byteLength)
@@ -103,6 +107,7 @@ export default function usePeerConnection(peer: SferaPeer) {
 
         sendNextChunk()
       }
+
     })
   }
 
@@ -115,7 +120,7 @@ export default function usePeerConnection(peer: SferaPeer) {
     }) => {
     isActive.value = true
     currentFileSize.value = metadata.size
-    peerConnection = new RTCPeerConnection()
+    peerConnection = new RTCPeerConnection(rtcConfig)
     peerConnection.setRemoteDescription(offer)
     await peerConnection.setLocalDescription(await peerConnection.createAnswer())
     const sferaMsg = {
@@ -126,26 +131,35 @@ export default function usePeerConnection(peer: SferaPeer) {
     wsConnection.value?.send(JSON.stringify(sferaMsg))
 
     peerConnection.onicecandidate = ({candidate}) => {
-      const sferaMsg = {
-        type: "ice-candidate",
-        receiver: peer.nickname,
-        data: candidate
+      if (candidate) {
+        const sferaMsg = {
+          type: "ice-candidate",
+          receiver: peer.nickname,
+          data: candidate
+        }
+        wsConnection.value?.send(JSON.stringify(sferaMsg))
       }
-      wsConnection.value?.send(JSON.stringify(sferaMsg))
     }
 
-    const dataChannel = peerConnection.createDataChannel("dataChannel")
+    const dataChannel = peerConnection.createDataChannel("dataChannel", {ordered: true})
     dataChannel.binaryType = "arraybuffer"
     peerConnection.addEventListener("datachannel", (e) => {
       // once RTC offers, answers and ICE candidates have been exchanged:
       // the data channel will open and ready for file transfer
       const { channel }  = e
-      const buffer: Blob[] = []
-      channel.onmessage = (e) => {
+      const buffer: ArrayBuffer[] = []
+      channel.onmessage = async (e) => {
+
         const { data } = e
-        const chunk = data as Blob
-        buffer.push(chunk)
-        bytesTransferred.value += chunk.size
+        const chunk = data as Blob | ArrayBuffer
+        if (chunk instanceof Blob) {
+          buffer.push(await chunk.arrayBuffer())
+          bytesTransferred.value += chunk.size
+
+        } else {
+          buffer.push(chunk)
+          bytesTransferred.value += chunk.byteLength
+        }
         if (bytesTransferred.value >= metadata.size) {
           const file = new Blob(buffer)
           const url = window.URL.createObjectURL(file)
@@ -160,8 +174,6 @@ export default function usePeerConnection(peer: SferaPeer) {
   }
 
   const progress = computed(() => currentFileSize.value ? Math.round((bytesTransferred.value / currentFileSize.value) * 100) : 0)
-
-
 
   return {
     sendFile,
