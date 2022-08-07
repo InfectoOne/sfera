@@ -1,5 +1,6 @@
 import SferaMessage from "src/models/SferaMessage"
 import SferaPeer from "src/models/SferaPeer"
+import { Notify } from "quasar"
 import { readonly, Ref, ref, toRefs } from "vue"
 
 const serverIp: Ref<string | null> = ref(null)
@@ -15,17 +16,23 @@ const isConnected = ref(false)
 const wsConnection: Ref<WebSocket | null>  = ref(null)
 
 const connect = async (ip: string, port: number, remember = false) => {
+  Notify.create(`Connected to ${ip}:${port}!`)
+  if (isConnected.value) {
+    wsConnection.value?.close()
+  }
   serverIp.value = ip
   serverPort.value = port
   return new Promise((resolve, reject) => {
     wsConnection.value = new WebSocket(`ws://${serverIp.value}:${serverPort.value}`)
     wsConnection.value.onopen = () => {
+      ("Connected!")
       isConnected.value = true
-      resolve(true)
       if(remember) {
         localStorage.setItem(LOCALSTORAGE_SERVERIP_KEY, ip)
         localStorage.setItem(LOCALSTORAGE_SERVERPORT_KEY, String(port))
       }
+      resolve(true)
+
     }
     wsConnection.value.onclose = () => {
       isConnected.value = false
@@ -41,13 +48,22 @@ const connect = async (ip: string, port: number, remember = false) => {
         }
         break
       case "peer-list":
+        console.log("peer list")
         if (sferaMsg.peerList) {
           peersOnline.value = sferaMsg.peerList
         }
         break
       case "peer-joined":
+        console.log("peer joined!")
         if (sferaMsg.peerList) {
           peersOnline.value.push(...sferaMsg.peerList)
+        }
+        break
+      case "peer-left":
+        const peerNickname = sferaMsg.sender as string
+        const index = peersOnline.value.findIndex(p => p.nickname == peerNickname)
+        if (index != -1) {
+          peersOnline.value.splice(index, 1)
         }
         break
       case "nickname":

@@ -33,13 +33,13 @@ export default route(function (/* { store, ssrContext } */) {
       process.env.MODE === "ssr" ? void 0 : process.env.VUE_ROUTER_BASE
     ),
   })
-  Router.beforeEach((to, from, next) => {
+  Router.beforeEach(async (to, from, next) => {
     const { isConnected, connect } = useSferaConnection()
     if (!isConnected.value) {
       const localStorageIp = localStorage.getItem(LOCALSTORAGE_SERVERIP_KEY)
       const localStoragePort = localStorage.getItem(LOCALSTORAGE_SERVERPORT_KEY)
       if (localStorageIp && localStoragePort && !Number.isNaN(localStoragePort)) {
-        void connect(localStorageIp, Number(localStoragePort))
+        await connect(localStorageIp, Number(localStoragePort))
         if (to.path == "/") {
           next("/peers")
         } else {

@@ -1,5 +1,5 @@
 export default interface SferaMessage {
-  type: "peer-list" | "peer-joined" | "chat-message" | "nickname" | "rtc-offer" | "rtc-answer" | "ice-candidate"
+  type: "peer-list" | "peer-joined" | "peer-left" | "chat-message" | "nickname" | "rtc-offer" | "rtc-answer" | "ice-candidate"
   peerList?: {
     nickname: string
     ipAddress: string

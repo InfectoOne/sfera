@@ -61,6 +61,11 @@ wsServer.on("connection", (conn: WebSocket, request: Request) => {
 		if (index != -1) {
 			peerList.splice(index, 1)
 			console.log(`Peer ${peer.nickname} disconnected!`)
+			peerList.forEach(p => p.send({
+				type: "peer-left",
+				sender: peer.nickname
+			}))
+
 		}
 	}
 })
