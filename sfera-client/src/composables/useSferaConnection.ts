@@ -48,13 +48,11 @@ const connect = async (ip: string, port: number, remember = false) => {
         }
         break
       case "peer-list":
-        console.log("peer list")
         if (sferaMsg.peerList) {
           peersOnline.value = sferaMsg.peerList
         }
         break
       case "peer-joined":
-        console.log("peer joined!")
         if (sferaMsg.peerList) {
           peersOnline.value.push(...sferaMsg.peerList)
         }

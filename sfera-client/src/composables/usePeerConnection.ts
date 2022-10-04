@@ -5,6 +5,7 @@ import { computed, Ref, ref } from "vue"
 import useSferaConnection from "./useSferaConnection"
 // eslint-disable-next-line @typescript-eslint/no-unused-vars
 import adapter from "webrtc-adapter"
+import { Notify } from "quasar"
 
 const CHUNK_SIZE_KB = 8 * 1024
 const rtcConfig = {
@@ -40,6 +41,19 @@ export default function usePeerConnection(peer: SferaPeer) {
       const candidate = sferaMsg.data as RTCIceCandidate
       peerConnection?.addIceCandidate(candidate)
       break
+    case "peer-left":
+      const peerNickname = sferaMsg.sender
+      if (peerNickname == peer.nickname && isActive.value) {
+        Notify.create({
+          icon: "mdi-alert",
+          type: "negative",
+          message: `File transfer failed: peer "${peer.nickname}" left!`
+        })
+        isActive.value = false
+        bytesTransferred.value = 0
+        currentFileSize.value = 0
+        peerConnection?.close()
+      }
     }
   })
 
