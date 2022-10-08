@@ -1,7 +1,6 @@
 # Sfera (sfera-client)
 
-Client for file transfer within a local network
-
+Web-based application client for peer-to-peer file transfer.
 ## Install the dependencies
 ```bash
 yarn
@@ -22,11 +21,15 @@ yarn lint
 npm run lint
 ```
 
-
-
 ### Build the app for production
 ```bash
 quasar build
+```
+
+## Run using Docker
+```
+docker build -t sfera-client .
+docker run -p -d 8800:8800 --name sfera-client sfera-client
 ```
 
 ### Customize the configuration
