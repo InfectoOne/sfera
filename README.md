@@ -63,11 +63,5 @@ docker run -p -d 4000:4000 --name sfera-server sfera-server
 **License** [MIT](https://choosealicense.com/licenses/mit/)  
 **Author**: Marko Žunić, BSc  
 
-## Support the project
-Sfera is a free open-source project I work on in my spare time. Buy me a beer and let's give a toast to open-source developers! :beers:
-
-
-[<img src="https://pics.paypal.com/00/s/MTdhMWZmNTUtOWQ1Yi00YmRjLWJjMjgtY2Y0NTNhODM0OTJl/file.PNG" height="80">](https://www.paypal.com/donate?hosted_button_id=M63C8DAMV5YDJ)
-
 ## Screenshots
 ![image](https://user-images.githubusercontent.com/28678851/194714736-c98297e1-eaed-4177-995d-25524521b774.png)
