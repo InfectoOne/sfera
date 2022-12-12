@@ -6,3 +6,11 @@ button {
     font-family: Roboto;
     font-weight: bold;
 }
+
+.connection-page-header {
+    height: 30vh;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+}

@@ -6,5 +6,5 @@ import { Component } from '@angular/core';
   styleUrls: ['./peers-page.component.scss']
 })
 export class PeersPageComponent {
-
+  peerList = ["Furious Bunny", "Sympathetic Piranha", "Anarchist Comodo"]
 }
