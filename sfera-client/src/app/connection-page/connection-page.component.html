@@ -1,0 +1,24 @@
+<h2>Sfera</h2>
+<mat-form-field class="full-width">
+    <mat-label>Server Address</mat-label>
+    <input
+        [(ngModel)]="serverAddress"
+        matInput
+        placeholder="e.g. 192.168.20.20"
+    />
+</mat-form-field>
+
+<mat-form-field class="full-width">
+    <mat-label>Server Port</mat-label>
+    <input
+        [(ngModel)]="serverPort"
+        matInput
+        placeholder="4000"
+    />
+</mat-form-field>
+
+<mat-checkbox color="primary">
+Don't ask me again
+</mat-checkbox>
+
+<button mat-raised-button color="primary" (click)="tryConnect()">Connect</button>
