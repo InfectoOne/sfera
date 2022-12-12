@@ -1,24 +1,38 @@
-<h2>Sfera</h2>
-<mat-form-field class="full-width">
-    <mat-label>Server Address</mat-label>
-    <input
-        [(ngModel)]="serverAddress"
-        matInput
-        placeholder="e.g. 192.168.20.20"
-    />
-</mat-form-field>
-
-<mat-form-field class="full-width">
-    <mat-label>Server Port</mat-label>
-    <input
-        [(ngModel)]="serverPort"
-        matInput
-        placeholder="4000"
-    />
-</mat-form-field>
-
-<mat-checkbox color="primary">
-Don't ask me again
-</mat-checkbox>
-
-<button mat-raised-button color="primary" (click)="tryConnect()">Connect</button>
+<div class="page">
+    <mat-card class="connection-page-header">
+        <img src="../../assets/sfera.png" height="120" width="120">
+    </mat-card> 
+    <div class="column inner-padding-md">
+        <mat-form-field class="full-width">
+            <mat-label>Server Address</mat-label>
+            <input
+                [(ngModel)]="serverAddress"
+                matInput
+                placeholder="e.g. 192.168.20.20"
+            />
+        </mat-form-field>
+    
+        <mat-form-field class="full-width">
+            <mat-label>Server Port</mat-label>
+            <input
+                [(ngModel)]="serverPort"
+                matInput
+                placeholder="4000"
+            />
+        </mat-form-field>
+    
+        <mat-checkbox color="primary">
+        Don't ask me again
+        </mat-checkbox>
+        <div class="row justify-center">
+            <button 
+                mat-raised-button
+                style="width: 200px; color: white;"
+                color="primary"
+                (click)="tryConnect()"
+            >
+                Connect
+            </button> 
+        </div>   
+    </div>
+</div>

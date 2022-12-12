@@ -1,1 +1,25 @@
-<p>peers-page works!</p>
+<div class="page">
+    <mat-toolbar>
+        <p style="font-weight: bold;">Sfera</p>
+        <span class="toolbar-spacer"></span>
+        <mat-icon class="mr-s">person</mat-icon>
+        <span id="username">Scrawny Warbler</span>
+    </mat-toolbar>
+
+    <div class="column fill-height justify-center align-center inner-padding-md">
+        <mat-chip 
+            *ngFor="let peer of peerList"
+            color="primary"
+            highlighted
+            class="peer-chip ma-m"
+        >  
+            <div class="row align-center">
+                <mat-icon class="mr-m">person</mat-icon>
+                <span> {{ peer }}</span>
+            </div>
+        </mat-chip>
+    </div>
+    <div class="row justify-center caption">
+        Click on a peer to send a file
+    </div>
+</div>
