@@ -11,3 +11,32 @@
     max-width: 300px;
     width: 100%;
 }
+.peer-chip * {
+    color: white;
+}
+
+.icon-container {
+    border-radius: 100%;
+    background: rgb(153, 102, 0);
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    width: 30px;
+    height: 30px;
+}
+
+.icon-container-small {
+    border-radius: 100%;
+    background: rgb(153, 102, 0);
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    width: 20px;
+    height: 20px;
+}
+
+.icon-container-small  .mat-icon{
+    font-size: 0.8em;
+    height: auto;
+    width: auto;
+}
