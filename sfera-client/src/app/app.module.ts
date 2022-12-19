@@ -15,12 +15,14 @@ import {MatCheckboxModule} from '@angular/material/checkbox';
 import {MatToolbarModule} from '@angular/material/toolbar'; 
 import {MatIconModule} from '@angular/material/icon'; 
 import {MatCardModule} from '@angular/material/card'; 
-import {MatChipsModule} from '@angular/material/chips'; 
+import {MatChipsModule} from '@angular/material/chips';
+import { PeerChipComponent } from './peer-chip/peer-chip.component';
 @NgModule({
   declarations: [
     AppComponent,
     ConnectionPageComponent,
     PeersPageComponent,
+    PeerChipComponent,
   ],
   imports: [
     BrowserModule,

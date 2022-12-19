@@ -76,4 +76,12 @@ export class SignalingService {
       }
     })
   }
+
+  getPeersOnline() {
+    return this.peersOnline
+  }
+
+  getWebSocketConnection() {
+    return this.wsConnection
+  }
 }

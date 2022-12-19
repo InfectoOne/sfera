@@ -1,19 +1,20 @@
-#username {
-    font-size: 0.7em;
+.peer-chip {
+    height: 45px;
+    max-width: 300px;
+    width: 100%;
+}
+.peer-chip * {
+    color: white;
 }
 
-.toolbar-spacer {
-    flex: 1 1 auto;
-}
-
-.icon-container-small {
+.icon-container {
     border-radius: 100%;
     background: rgb(153, 102, 0);
     display: flex;
     justify-content: center;
     align-items: center;
-    width: 20px;
-    height: 20px;
+    width: 30px;
+    height: 30px;
 }
 
 .icon-container-small  .mat-icon{

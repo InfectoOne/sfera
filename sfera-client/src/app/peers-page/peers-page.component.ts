@@ -1,4 +1,5 @@
 import { Component } from '@angular/core';
+import { SignalingService } from '../signaling.service';
 
 @Component({
   selector: 'app-peers-page',
@@ -6,5 +7,9 @@ import { Component } from '@angular/core';
   styleUrls: ['./peers-page.component.scss']
 })
 export class PeersPageComponent {
-  peerList = ["Furious Bunny", "Sympathetic Piranha", "Anarchist Comodo"]
+  constructor(
+    public signalingService: SignalingService
+  ) {}
+
+
 }
