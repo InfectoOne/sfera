@@ -5,25 +5,17 @@
         <div class="icon-container-small mr-s">
             <mat-icon>person</mat-icon>
         </div>
-        <span id="username">Scrawny Warbler</span>
+        <span id="username">{{signalingService.nickname}}</span>
     </mat-toolbar>
 
     <div class="column fill-height justify-center align-center inner-padding-md">
-        <mat-chip 
-            *ngFor="let peer of peerList"
-            color="primary"
-            highlighted
-            class="peer-chip ma-m"
-        >  
-            <div class="row align-center">
-                <div class="icon-container mr-m">
-                    <mat-icon aria-hidden="true">person</mat-icon>
-                </div>
-                <span> {{ peer }}</span>
-            </div>
-        </mat-chip>
+        <app-peer-chip
+            *ngFor="let peer of signalingService.getPeersOnline()"
+            [peer]="peer"        
+        >
+    </app-peer-chip>
     </div>
-    <div class="row justify-center caption">
+    <div class="row justify-center caption mb-m">
         Click on a peer to send a file
     </div>
 </div>

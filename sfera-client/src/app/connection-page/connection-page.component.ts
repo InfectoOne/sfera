@@ -15,7 +15,7 @@ export class ConnectionPageComponent {
   ) {}
 
   tryConnect() {
-    this.signalingService.connect("localhost", 4000)
+    this.signalingService.connect("192.168.0.32", 4000)
     this.router.navigate(["/peers"])
   }
 }
