@@ -22,3 +22,10 @@
     height: auto;
     width: auto;
 }
+
+.hidden-file-input {
+    display: block;
+    visibility: hidden;
+    width: 0;
+    height: 0;
+}

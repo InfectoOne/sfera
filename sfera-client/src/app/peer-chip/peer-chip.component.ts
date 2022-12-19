@@ -1,4 +1,4 @@
-import { Component, Input, OnInit } from '@angular/core';
+import { Component, ElementRef, Input, OnInit, ViewChild } from '@angular/core';
 import SferaPeer from '../models/SferaPeer';
 import SferaMessage from '../models/SferaMessage';
 import { SignalingService } from '../signaling.service';
@@ -15,6 +15,7 @@ export class PeerChipComponent implements OnInit{
   }
   
   @Input() peer!: SferaPeer;
+  @ViewChild("fileInput") fileInput!: ElementRef
 
   peerConnection: RTCPeerConnection | null = null
   isActive = false 
@@ -62,6 +63,13 @@ export class PeerChipComponent implements OnInit{
         }
       }
     })
+  }
+
+  pickFile() {
+    if (this.fileInput) {
+      console.log(this.fileInput)
+      this.fileInput.nativeElement.click()
+    }
   }
 
   async sendFile (file: File) {
