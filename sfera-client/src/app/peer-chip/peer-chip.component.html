@@ -2,6 +2,7 @@
     color="primary"
     highlighted
     class="peer-chip ma-m"
+    (click)="pickFile()"
 >  
     <div class="row align-center">
         <div class="icon-container mr-m">
@@ -10,3 +11,11 @@
         <span> {{ peer.nickname }}</span>
     </div>
 </mat-chip>
+<!-- invisible file-input element that can be accessed by clicking on the project image (or the placeholder) -->
+<input
+#fileInput
+class="hidden-file-input"
+type="file"
+multiple
+[disabled]="isActive"
+>
