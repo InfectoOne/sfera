@@ -11,11 +11,11 @@ import { SignalingService } from '../signaling.service';
 export class PeerChipComponent implements OnInit{
   static CHUNK_SIZE_KB = 8 * 1024
   static RTC_CONFIG = {
-    iceServers: []
+    iceServers: []  // no need for a STUN/TURN server for transfers within a local network
   }
   
   @Input() peer!: SferaPeer;
-  @ViewChild("fileInput") fileInput!: ElementRef
+  @ViewChild("fileInput") fileInput!: ElementRef<HTMLInputElement>
 
   peerConnection: RTCPeerConnection | null = null
   isActive = false 
@@ -67,8 +67,18 @@ export class PeerChipComponent implements OnInit{
 
   pickFile() {
     if (this.fileInput) {
-      console.log(this.fileInput)
       this.fileInput.nativeElement.click()
+    }
+  }
+
+  afterPickFile() {
+    if (this.fileInput) {
+      const fileList = this.fileInput.nativeElement.files
+      if (fileList) {
+        for(const file of Array.from(fileList)) {
+          void this.sendFile(file)
+        }
+      }
     }
   }
 
