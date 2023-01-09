@@ -9,11 +9,19 @@
     </mat-toolbar>
 
     <div class="column fill-height justify-center align-center inner-padding-md">
-        <app-peer-chip
-            *ngFor="let peer of signalingService.getPeersOnline()"
-            [peer]="peer"        
-        >
-    </app-peer-chip>
+        <div *ngIf="signalingService.isConnected else notconnected">
+            <app-peer-chip
+                *ngFor="let peer of signalingService.getPeersOnline()"
+                [peer]="peer"        
+            >
+            </app-peer-chip>
+        </div>
+        <ng-template #notconnected>
+            <div class="no-connection-msg">
+                <mat-icon aria-hidden="false" aria-label="No-connection-icon" fontIcon="link_off"></mat-icon>
+                No connection with the server
+            </div>
+        </ng-template>
     </div>
     <div class="row justify-center caption mb-m">
         Click on a peer to send a file

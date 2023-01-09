@@ -21,3 +21,17 @@
     height: auto;
     width: auto;
 }
+
+.no-connection-msg {
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    color: gray;
+}
+
+.no-connection-msg  .mat-icon{
+    font-size: 45px;
+    height: 45px;
+    width: 45px;
+}
