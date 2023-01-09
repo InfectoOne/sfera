@@ -1,4 +1,4 @@
-import { Component, ElementRef, Input, OnInit, ViewChild } from '@angular/core';
+import { Component, ElementRef, Input, NgZone, OnInit, ViewChild } from '@angular/core';
 import SferaPeer from '../models/SferaPeer';
 import SferaMessage from '../models/SferaMessage';
 import { SignalingService } from '../signaling.service';
@@ -22,7 +22,7 @@ export class PeerChipComponent implements OnInit{
   bytesTransferred = 0
   currentFileSize = 0
 
-  constructor(private signalingService: SignalingService) {}
+  constructor(private signalingService: SignalingService, private ngZone: NgZone) {}
 
   ngOnInit(): void {
     const wsConnection = this.signalingService.getWebSocketConnection()
@@ -147,7 +147,9 @@ export class PeerChipComponent implements OnInit{
             resolve(true)
           }
         }
-        sendNextChunk()
+        this.ngZone.run(() => {
+          sendNextChunk()
+        })
       }
     })
   }

@@ -2,6 +2,7 @@
     height: 45px;
     max-width: 300px;
     width: 100%;
+    position: relative;
 }
 .peer-chip * {
     color: white;
@@ -28,4 +29,11 @@
     visibility: hidden;
     width: 0;
     height: 0;
+}
+
+.progress-perc{
+    position: absolute;
+    left: 20px;
+    top: 15px;
+    font-size: 0.8em;;
 }

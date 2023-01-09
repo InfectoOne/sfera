@@ -16,13 +16,15 @@ import {MatToolbarModule} from '@angular/material/toolbar';
 import {MatIconModule} from '@angular/material/icon'; 
 import {MatCardModule} from '@angular/material/card'; 
 import {MatChipsModule} from '@angular/material/chips';
+import {MatProgressSpinnerModule} from '@angular/material/progress-spinner'; 
 import { PeerChipComponent } from './peer-chip/peer-chip.component';
+
 @NgModule({
   declarations: [
     AppComponent,
     ConnectionPageComponent,
     PeersPageComponent,
-    PeerChipComponent,
+    PeerChipComponent
   ],
   imports: [
     BrowserModule,
@@ -36,7 +38,8 @@ import { PeerChipComponent } from './peer-chip/peer-chip.component';
     MatToolbarModule,
     MatIconModule,
     MatCardModule,
-    MatChipsModule
+    MatChipsModule,
+    MatProgressSpinnerModule
   ],
   providers: [],
   bootstrap: [AppComponent]

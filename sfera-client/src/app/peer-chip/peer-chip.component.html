@@ -5,18 +5,31 @@
     (click)="pickFile()"
 >  
     <div class="row align-center">
-        <div class="icon-container mr-m">
-            <mat-icon aria-hidden="true">person</mat-icon>
+        <div *ngIf="isActive else peericon">
+            <mat-spinner 
+                color="accent"
+                diameter="40"
+                strokeWidth="7"
+                [value]="bytesTransferred / currentFileSize * 100"
+                mode="determinate"
+            >
+            </mat-spinner>
+            <span class="progress-perc">{{ bytesTransferred / currentFileSize * 100 | number : '1.0-0' }} %</span>
         </div>
-        <span> {{ peer.nickname }}</span>
+        <ng-template #peericon>
+            <div class="icon-container">
+                <mat-icon aria-hidden="true">person</mat-icon>
+            </div>
+        </ng-template>
+        <span class="ml-m"> {{ peer.nickname }}</span>
     </div>
 </mat-chip>
-<!-- invisible file-input element that can be accessed by clicking on the project image (or the placeholder) -->
+<!-- invisible file-input element that can be accessed by clicking on the peer chip-->
 <input
-#fileInput
-class="hidden-file-input"
-type="file"
-multiple
-[disabled]="isActive"
-(change)="afterPickFile()"
+    #fileInput
+    class="hidden-file-input"
+    type="file"
+    multiple
+    [disabled]="isActive"
+    (change)="afterPickFile()"
 >
