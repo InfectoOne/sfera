@@ -6,6 +6,14 @@
             <mat-icon>person</mat-icon>
         </div>
         <span id="username">{{signalingService.nickname}}</span>
+        <button 
+            mat-mini-fab
+            aria-label="logout"
+            class="ml-l btn-logout"
+            (click)="signalingService.disconnect()"
+        >
+            <mat-icon>logout</mat-icon>
+        </button>
     </mat-toolbar>
 
     <div class="column fill-height justify-center align-center inner-padding-md">

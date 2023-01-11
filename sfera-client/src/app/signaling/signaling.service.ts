@@ -1,6 +1,7 @@
 import { Injectable } from '@angular/core';
-import SferaPeer from './models/SferaPeer';
-import SferaMessage from './models/SferaMessage';
+import SferaPeer from '../models/SferaPeer';
+import SferaMessage from '../models/SferaMessage';
+import { Route, Router } from '@angular/router';
 
 @Injectable({
   providedIn: 'root'
@@ -17,9 +18,9 @@ export class SignalingService {
   isConnected = false
   wsConnection: WebSocket | null = null
 
-  constructor() { }
+  constructor(private router: Router) { }
 
-  async connect(ip: string, port: number, remember = false){
+  async connect(ip: string, port: number, remember = false) {
     if (this.isConnected) {
       this.wsConnection?.close()
     }
@@ -28,7 +29,6 @@ export class SignalingService {
     return new Promise((resolve, reject) => {
       this.wsConnection = new WebSocket(`ws://${this.serverIp}:${this.serverPort}`)
       this.wsConnection.onopen = () => {
-        console.log("Connected!")
         this.isConnected = true
         if(remember) {
           localStorage.setItem(this.LOCALSTORAGE_SERVERIP_KEY, ip)
@@ -75,6 +75,16 @@ export class SignalingService {
         }
       }
     })
+  }
+
+  disconnect() {
+    if (this.wsConnection) {
+      this.wsConnection.close()
+      this.isConnected = false
+      localStorage.removeItem(this.LOCALSTORAGE_SERVERIP_KEY)
+      localStorage.removeItem(this.LOCALSTORAGE_SERVERPORT_KEY)
+      this.router.navigate(["/"])
+    }
   }
 
   getPeersOnline() {

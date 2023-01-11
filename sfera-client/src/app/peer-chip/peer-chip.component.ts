@@ -1,7 +1,7 @@
 import { Component, ElementRef, Input, NgZone, OnInit, ViewChild } from '@angular/core';
 import SferaPeer from '../models/SferaPeer';
 import SferaMessage from '../models/SferaMessage';
-import { SignalingService } from '../signaling.service';
+import { SignalingService } from '../signaling/signaling.service';
 
 @Component({
   selector: 'app-peer-chip',
