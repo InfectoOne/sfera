@@ -2,37 +2,48 @@
     <mat-card class="connection-page-header">
         <img src="../../assets/sfera.png" height="120" width="120">
     </mat-card> 
-    <div class="column inner-padding-md">
-        <mat-form-field class="full-width">
-            <mat-label>Server Address</mat-label>
-            <input
-                [(ngModel)]="serverAddress"
-                matInput
-                placeholder="e.g. 192.168.20.20"
-            />
-        </mat-form-field>
-    
-        <mat-form-field class="full-width">
-            <mat-label>Server Port</mat-label>
-            <input
-                [(ngModel)]="serverPort"
-                matInput
-                placeholder="4000"
-            />
-        </mat-form-field>
-    
-        <mat-checkbox color="primary" [(ngModel)]="remember">
-            Don't ask me again
-        </mat-checkbox>
-        <div class="row justify-center">
-            <button 
-                mat-raised-button
-                style="width: 200px; color: white;"
-                color="primary"
-                (click)="tryConnect()"
-            >
-                Connect
-            </button> 
-        </div>   
-    </div>
+        <div class="column inner-padding-md">
+            <form [formGroup]="connectionForm" novalidate>
+
+            <mat-form-field class="full-width">
+                <mat-label>Server Address</mat-label>
+                <input
+                    formControlName="serverAddress"
+                    matInput
+                    placeholder="e.g. 192.168.20.20"
+                />
+                <mat-error *ngIf="!validate('serverAddress', 'required')">
+                    Address is required.
+                </mat-error>
+            </mat-form-field>
+        
+            <mat-form-field class="full-width">
+                <mat-label>Server Port</mat-label>
+                <input
+                    formControlName="serverPort"
+                    matInput
+                    placeholder="4000"
+                />
+                <mat-error *ngIf="!validate('serverPort', 'required')">
+                    Port is required.
+                </mat-error>
+
+            </mat-form-field>
+            </form>
+        
+            <mat-checkbox color="primary" [(ngModel)]="remember">
+                Don't ask me again
+            </mat-checkbox>
+            <div class="row justify-center">
+                <button 
+                    mat-raised-button
+                    style="width: 200px; color: white;"
+                    color="primary"
+                    (click)="tryConnect()"
+                >
+                    Connect
+                </button> 
+            </div>   
+        </div>
+
 </div>
