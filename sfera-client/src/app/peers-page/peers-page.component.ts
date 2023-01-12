@@ -1,15 +1,15 @@
-import { Component } from '@angular/core';
-import { SignalingService } from '../signaling/signaling.service';
+import { Component } from "@angular/core"
+import { SignalingService } from "../signaling/signaling.service"
 
 @Component({
-  selector: 'app-peers-page',
-  templateUrl: './peers-page.component.html',
-  styleUrls: ['./peers-page.component.scss']
+	selector: "app-peers-page",
+	templateUrl: "./peers-page.component.html",
+	styleUrls: ["./peers-page.component.scss"]
 })
 export class PeersPageComponent {
-  constructor(
+	constructor(
     public signalingService: SignalingService
-  ) {}
+	) {}
 
 
 }

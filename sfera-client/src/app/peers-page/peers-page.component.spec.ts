@@ -1,23 +1,23 @@
-import { ComponentFixture, TestBed } from '@angular/core/testing';
+import { ComponentFixture, TestBed } from "@angular/core/testing"
 
-import { PeersPageComponent } from './peers-page.component';
+import { PeersPageComponent } from "./peers-page.component"
 
-describe('PeersPageComponent', () => {
-  let component: PeersPageComponent;
-  let fixture: ComponentFixture<PeersPageComponent>;
+describe("PeersPageComponent", () => {
+	let component: PeersPageComponent
+	let fixture: ComponentFixture<PeersPageComponent>
 
-  beforeEach(async () => {
-    await TestBed.configureTestingModule({
-      declarations: [ PeersPageComponent ]
-    })
-    .compileComponents();
+	beforeEach(async () => {
+		await TestBed.configureTestingModule({
+			declarations: [ PeersPageComponent ]
+		})
+			.compileComponents()
 
-    fixture = TestBed.createComponent(PeersPageComponent);
-    component = fixture.componentInstance;
-    fixture.detectChanges();
-  });
+		fixture = TestBed.createComponent(PeersPageComponent)
+		component = fixture.componentInstance
+		fixture.detectChanges()
+	})
 
-  it('should create', () => {
-    expect(component).toBeTruthy();
-  });
-});
+	it("should create", () => {
+		expect(component).toBeTruthy()
+	})
+})
