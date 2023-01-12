@@ -1,6 +1,6 @@
 {
   "name": "sfera",
-  "version": "0.0.1",
+  "version": "1.0.0",
   "description": "Web service for sharing files within a local network",
   "main": "server.js",
   "scripts": {

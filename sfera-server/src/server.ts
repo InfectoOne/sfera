@@ -13,8 +13,7 @@ const wsServer = new WebSocketServer({server})
 
 const peerList: SferaPeer[] = []
 
-// const getFellowsOfPeer = (peer: SferaPeer) => peerList.filter(p => p.nickname != peer.nickname && p.ipAddress != peer.ipAddress)
-const getFellowsOfPeer = (peer: SferaPeer) => peerList
+const getFellowsOfPeer = (peer: SferaPeer) => peerList.filter(p => p.nickname != peer.nickname && p.ipAddress != peer.ipAddress)
 
 wsServer.on("connection", (conn: WebSocket, request: Request) => {
 	const peer = new SferaPeer(conn, request)
