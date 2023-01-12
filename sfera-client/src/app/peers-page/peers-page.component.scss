@@ -22,7 +22,7 @@
     width: auto;
 }
 
-.no-connection-msg {
+.no-peers-or-conn-msg {
     display: flex;
     flex-direction: column;
     justify-content: center;
@@ -30,7 +30,7 @@
     color: gray;
 }
 
-.no-connection-msg  .mat-icon{
+.no-peers-or-conn-msg  .mat-icon{
     font-size: 45px;
     height: 45px;
     width: 45px;

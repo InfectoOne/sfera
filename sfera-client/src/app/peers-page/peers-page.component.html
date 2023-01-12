@@ -18,6 +18,10 @@
 
     <div class="column fill-height justify-center align-center inner-padding-md">
         <div *ngIf="signalingService.isConnected else notconnected">
+            <div *ngIf="signalingService.getPeersOnline().length == 0" class="no-peers-or-conn-msg">
+                <mat-icon aria-hidden="false" aria-label="No-connection-icon" fontIcon="sentiment_dissatisfied"></mat-icon>
+                No peers online
+            </div>
             <app-peer-chip
                 *ngFor="let peer of signalingService.getPeersOnline()"
                 [peer]="peer"        
@@ -25,7 +29,7 @@
             </app-peer-chip>
         </div>
         <ng-template #notconnected>
-            <div class="no-connection-msg">
+            <div class="no-peers-or-conn-msg">
                 <mat-icon aria-hidden="false" aria-label="No-connection-icon" fontIcon="link_off"></mat-icon>
                 No connection with the server
             </div>

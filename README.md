@@ -53,12 +53,12 @@ Build the server image and run it within a new container:
 ```
 cd sfera-server
 docker build -t sfera-server .
-docker run -p -d 4000:4000 --name sfera-server sfera-server
+docker run -d -p 4000:4000 --name sfera-server sfera-server
 ```
 
 ## Tech Stack
 - Client: [Angular](https://angular.io/) and [Angular Material](https://material.angular.io/)
-- Server: [Node.js](https://nodejs.org/en/) with [Typescript](https://www.typescriptlang.org/)
+- Server: [Node.js](https://nodejs.org/en/) with [TypeScript](https://www.typescriptlang.org/)
 
 ## About
 **License** [MIT](https://choosealicense.com/licenses/mit/)  
