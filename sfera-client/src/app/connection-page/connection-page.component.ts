@@ -14,9 +14,9 @@ export class ConnectionPageComponent implements OnInit{
 	public connectionForm: FormGroup
 
 	constructor(
-    private router: Router,
-    private signalingService: SignalingService,
-    private _snackBar: MatSnackBar
+		private router: Router,
+		private signalingService: SignalingService,
+		private _snackBar: MatSnackBar
 	) {
 		this.connectionForm = new FormGroup({
 			serverAddress: new FormControl("", [Validators.required, Validators.maxLength(20)]),

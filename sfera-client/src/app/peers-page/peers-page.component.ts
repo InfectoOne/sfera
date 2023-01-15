@@ -8,8 +8,6 @@ import { SignalingService } from "../signaling/signaling.service"
 })
 export class PeersPageComponent {
 	constructor(
-    public signalingService: SignalingService
+		public signalingService: SignalingService
 	) {}
-
-
 }

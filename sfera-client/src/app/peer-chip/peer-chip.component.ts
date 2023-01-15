@@ -14,7 +14,7 @@ export class PeerChipComponent implements OnInit{
 	static RTC_CONFIG = {
 		iceServers: []  // no need for a STUN/TURN server for transfers within a local network
 	}
-  
+
 	@Input() peer!: SferaPeer
 	@ViewChild("fileInput") fileInput!: ElementRef<HTMLInputElement>
 
@@ -63,7 +63,7 @@ export class PeerChipComponent implements OnInit{
 					this.bytesTransferred = 0
 					this.currentFileSize = 0
 					this.peerConnection?.close()
-					this._snackBar.open("Sending file failed! Peer left!")
+					this._snackBar.open(`Sending file failed! Peer "${peerNickname}" left!`, "OK", {duration: 5000})
 				}
 			}
 		})
@@ -75,12 +75,12 @@ export class PeerChipComponent implements OnInit{
 		}
 	}
 
-	afterPickFile() {
+	async afterPickFile() {
 		if (this.fileInput) {
 			const fileList = this.fileInput.nativeElement.files
 			if (fileList) {
 				for(const file of Array.from(fileList)) {
-					void this.sendFile(file)
+					await this.sendFile(file)
 				}
 			}
 		}
@@ -94,7 +94,7 @@ export class PeerChipComponent implements OnInit{
 
 			const wsConnection = this.signalingService.getWebSocketConnection()
 			if (!wsConnection) {
-				this._snackBar.open("File cannot be sent! No connection with the server!")
+				this._snackBar.open("File cannot be sent! No connection with the server!", "OK", {duration: 5000})
 				return
 			}
 
@@ -113,7 +113,7 @@ export class PeerChipComponent implements OnInit{
 					}
 					wsConnection.send(JSON.stringify(sferaMsg))
 				} catch (error) {
-					this._snackBar.open(`Failed to connect with "${this.peer.nickname}"!`)
+					this._snackBar.open(`Failed to connect with "${this.peer.nickname}"!`, "OK", {duration: 5000})
 					console.error(error)
 				}
 			}
@@ -135,7 +135,7 @@ export class PeerChipComponent implements OnInit{
 			dataChannel.onopen = async () => {
 
 				// once RTC offers, answers and ICE candidates have been exchanged:
-				// the data channel will open and ready for file transfer
+				// the data channel will open and file transfer can commence
 				let buffer = await file.arrayBuffer()
 				const sendNextChunk = () => {
 					const chunk = buffer.slice(0, PeerChipComponent.CHUNK_SIZE_KB)
@@ -149,7 +149,7 @@ export class PeerChipComponent implements OnInit{
 						this.bytesTransferred = 0
 						this.currentFileSize = 0
 						dataChannel.close()
-						this._snackBar.open(`File transfer to "${this.peer.nickname}" complete!`)
+						this._snackBar.open(`File transfer to "${this.peer.nickname}" complete!`, "OK", {duration: 5000})
 						resolve(true)
 					}
 				}
@@ -170,7 +170,7 @@ export class PeerChipComponent implements OnInit{
 	) {
 		const wsConnection = this.signalingService.getWebSocketConnection()
 		if (!wsConnection) {
-			this._snackBar.open(`"${this.peer.nickname}" tried sending file, but failed! Connection with server broke!`)
+			this._snackBar.open(`"${this.peer.nickname}" tried sending file, but failed! Connection with server broke!`, "OK", {duration: 5000})
 			return
 		}
 		this.isActive = true
@@ -201,29 +201,31 @@ export class PeerChipComponent implements OnInit{
 		dataChannel.binaryType = "arraybuffer"
 		this.peerConnection.addEventListener("datachannel", (e) => {
 			// once RTC offers, answers and ICE candidates have been exchanged:
-			// the data channel will open and ready for file transfer
+			// the data channel will open and the file transfer can commence
 			const { channel }  = e
 			const buffer: ArrayBuffer[] = []
 			channel.onmessage = async (e) => {
-				const { data } = e
-				const chunk = data as Blob | ArrayBuffer
-				if (chunk instanceof Blob) {
-					buffer.push(await chunk.arrayBuffer())
-					this.bytesTransferred += chunk.size
-				} else {
-					buffer.push(chunk)
-					this.bytesTransferred += chunk.byteLength
-				}
-				if (this.bytesTransferred >= metadata.size) {
-					const file = new Blob(buffer)
-					const url = window.URL.createObjectURL(file)
-					this.downloadFromUrl(url, metadata.name)
-					channel.close()
-					this.isActive = false
-					this.bytesTransferred = 0
-					this.currentFileSize = 0
-					this._snackBar.open(`Received a file from ${this.peer.nickname}!`)
-				}
+				this.ngZone.run(async () => {
+					const { data } = e
+					const chunk = data as Blob | ArrayBuffer
+					if (chunk instanceof Blob) {
+						buffer.push(await chunk.arrayBuffer())
+						this.bytesTransferred += chunk.size
+					} else {
+						buffer.push(chunk)
+						this.bytesTransferred += chunk.byteLength
+					}
+					if (this.bytesTransferred >= metadata.size) {
+						const file = new Blob(buffer)
+						const url = window.URL.createObjectURL(file)
+						this.downloadFromUrl(url, metadata.name)
+						channel.close()
+						this.isActive = false
+						this.bytesTransferred = 0
+						this.currentFileSize = 0
+						this._snackBar.open(`Received a file from "${this.peer.nickname}"!`, "OK", {duration: 5000})
+					}
+				})
 			}
 		})
 	}
